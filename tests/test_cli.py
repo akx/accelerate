@@ -17,6 +17,7 @@ import os
 import unittest
 from pathlib import Path
 
+import pytest
 import torch
 from huggingface_hub.utils import GatedRepoError, RepositoryNotFoundError
 
@@ -76,10 +77,7 @@ class AccelerateLauncherTester(unittest.TestCase):
                     )
 
     def test_invalid_keys(self):
-        with self.assertRaises(
-            RuntimeError,
-            msg="The config file at 'invalid_keys.yaml' had unknown keys ('another_invalid_key', 'invalid_key')",
-        ):
+        with pytest.raises(RuntimeError):
             execute_subprocess_async(
                 self.base_cmd
                 + ["--config_file", str(self.test_config_path / "invalid_keys.yaml"), self.test_file_path],
@@ -246,33 +244,29 @@ class ModelEstimatorTester(unittest.TestCase):
     parser = estimate_command_parser()
 
     def test_invalid_model_name(self):
-        with self.assertRaises(
-            RepositoryNotFoundError, msg="Repo for model `somebrokenname` does not exist on the Hub"
-        ):
+        with pytest.raises(RepositoryNotFoundError, match="Repo for model `somebrokenname` does not exist on the Hub"):
             args = self.parser.parse_args(["somebrokenname"])
             estimate_command(args)
 
     @require_timm
     def test_invalid_model_name_timm(self):
-        with self.assertRaises(RuntimeError, msg="Tried to load `muellerzr/dummy` with `timm` but"):
+        with pytest.raises(RuntimeError, match="Tried to load `muellerzr/dummy` with `timm` but"):
             args = self.parser.parse_args(["muellerzr/dummy", "--library_name", "timm"])
             estimate_command(args)
 
     @require_transformers
     def test_invalid_model_name_transformers(self):
-        with self.assertRaises(RuntimeError, msg="Tried to load `muellerzr/dummy` with `transformers` but"):
+        with pytest.raises(RuntimeError, match="Tried to load `muellerzr/dummy` with `transformers` but"):
             args = self.parser.parse_args(["muellerzr/dummy", "--library_name", "transformers"])
             estimate_command(args)
 
     def test_no_metadata(self):
-        with self.assertRaises(
-            ValueError, msg="Model `muellerzr/dummy` does not have any library metadata on the Hub"
-        ):
+        with pytest.raises(ValueError, match="Model `muellerzr/dummy` does not have any library metadata on the Hub"):
             args = self.parser.parse_args(["muellerzr/dummy"])
             estimate_command(args)
 
     def test_gated(self):
-        with self.assertRaises(GatedRepoError, msg="Repo for model `meta-llama/Llama-2-7b-hf` is gated"):
+        with pytest.raises(GatedRepoError, match="Repo for model `meta-llama/Llama-2-7b-hf` is gated"):
             args = self.parser.parse_args(["meta-llama/Llama-2-7b-hf"])
             with patch_environment(hf_hub_disable_implicit_token="1"):
                 estimate_command(args)
@@ -281,7 +275,7 @@ class ModelEstimatorTester(unittest.TestCase):
     def test_remote_code(self):
         # Also tests that custom `Auto` classes work
         args = self.parser.parse_args(["hf-internal-testing/test_dynamic_model"])
-        with self.assertRaises(ValueError, msg="--trust_remote_code"):
+        with pytest.raises(ValueError, match="--trust-remote-code"):
             gather_data(args)
 
         # Verify it works with the flag

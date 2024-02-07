@@ -14,6 +14,7 @@
 
 import unittest
 
+import pytest
 from torch import nn
 
 from accelerate.test_utils import memory_allocated_func, require_non_cpu, torch_device
@@ -69,9 +70,8 @@ class MemoryTest(unittest.TestCase):
         def mock_training_loop_function(batch_size):
             pass
 
-        with self.assertRaises(RuntimeError) as cm:
+        with pytest.raises(RuntimeError, match="No executable batch size found, reached zero."):
             mock_training_loop_function()
-            assert "No executable batch size found, reached zero." in cm.exception.args[0]
 
     def test_approach_zero(self):
         @find_executable_batch_size(starting_batch_size=16)
@@ -80,9 +80,8 @@ class MemoryTest(unittest.TestCase):
                 raise_fake_out_of_memory()
             pass
 
-        with self.assertRaises(RuntimeError) as cm:
+        with pytest.raises(RuntimeError, match="No executable batch size found, reached zero."):
             mock_training_loop_function()
-            assert "No executable batch size found, reached zero." in cm.exception.args[0]
 
     def test_verbose_guard(self):
         @find_executable_batch_size(starting_batch_size=128)
@@ -90,18 +89,19 @@ class MemoryTest(unittest.TestCase):
             if batch_size != 8:
                 raise raise_fake_out_of_memory()
 
-        with self.assertRaises(TypeError) as cm:
+        with pytest.raises(TypeError) as cm:
             mock_training_loop_function(128, "hello", "world")
-            assert "Batch size was passed into `f`" in cm.exception.args[0]
-            assert "`f(arg1='hello', arg2='world')" in cm.exception.args[0]
+        assert "Batch size was passed into `f`" in cm.exception.args[0]
+        assert "`f(arg1='hello', arg2='world')" in cm.exception.args[0]
 
     def test_any_other_error(self):
         @find_executable_batch_size(starting_batch_size=16)
         def mock_training_loop_function(batch_size):
             raise ValueError("Oops, we had an error!")
 
-        with self.assertRaises(ValueError) as cm:
+        with pytest.raises(ValueError) as cm:
             mock_training_loop_function()
+            # TODO: this is probably never reached:
             assert "Oops, we had an error!" in cm.exception.args[0]
 
     @require_non_cpu

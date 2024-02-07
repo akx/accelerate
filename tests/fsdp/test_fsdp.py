@@ -16,6 +16,7 @@
 import inspect
 import os
 
+import pytest
 import torch
 from transformers import AutoModel
 from transformers.testing_utils import mockenv_context
@@ -133,9 +134,8 @@ class FSDPPluginIntegration(AccelerateTestCase):
         env["FSDP_TRANSFORMER_CLS_TO_WRAP"] = "T5Layer"
         with mockenv_context(**env):
             fsdp_plugin = FullyShardedDataParallelPlugin()
-            with self.assertRaises(Exception) as cm:
+            with pytest.raises(Exception, match="Could not find the transformer layer class to wrap in the model."):
                 fsdp_plugin.set_auto_wrap_policy(model)
-            assert "Could not find the transformer layer class to wrap in the model." in str(cm.exception)
 
         env = self.dist_env.copy()
         env["FSDP_AUTO_WRAP_POLICY"] = "SIZE_BASED_WRAP"

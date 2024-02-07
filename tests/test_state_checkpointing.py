@@ -283,9 +283,9 @@ class CheckpointTest(unittest.TestCase):
         net = DummyModel()
         opt = torch.optim.Adam(net.parameters())
         accelerator = Accelerator()
-        with self.assertRaises(ValueError) as ve:
+        with pytest.raises(ValueError) as ei:
             accelerator.register_for_checkpointing(t, t1, net, opt)
-        message = str(ve.exception)
+        message = str(ei.value)
         assert "Item at index 0" in message
         assert "Item at index 1" in message
         assert "Item at index 2" not in message

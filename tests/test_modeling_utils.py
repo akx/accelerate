@@ -18,6 +18,7 @@ import tempfile
 import unittest
 from collections import OrderedDict
 
+import pytest
 import torch
 import torch.nn as nn
 from safetensors.torch import save_file
@@ -91,7 +92,7 @@ class ModelingUtilsTester(unittest.TestCase):
             assert model.linear1.weight.device == torch.device(device2)
 
             if torch.device(device2) == torch.device("meta"):
-                with self.assertRaises(ValueError):
+                with pytest.raises(ValueError):
                     # We need a `value` to set the weight back on device1
                     set_module_tensor_to_device(model.linear1, "weight", device1)
 
@@ -105,7 +106,7 @@ class ModelingUtilsTester(unittest.TestCase):
             assert model.linear1.weight.device == torch.device(device2)
 
             if torch.device(device2) == torch.device("meta"):
-                with self.assertRaises(ValueError):
+                with pytest.raises(ValueError):
                     # We need a `value` to set the weight back on device1
                     set_module_tensor_to_device(model, "linear1.weight", device1)
                 set_module_tensor_to_device(model, "linear1.weight", device1, value=torch.randn(4, 3))
@@ -120,7 +121,7 @@ class ModelingUtilsTester(unittest.TestCase):
             assert model.batchnorm.running_mean.device == torch.device(device2)
 
             if torch.device(device2) == torch.device("meta"):
-                with self.assertRaises(ValueError):
+                with pytest.raises(ValueError):
                     # We need a `value` to set the weight back on device1
                     set_module_tensor_to_device(model.batchnorm, "running_mean", device1)
                 set_module_tensor_to_device(model.batchnorm, "running_mean", device1, value=torch.randn(4))
@@ -133,7 +134,7 @@ class ModelingUtilsTester(unittest.TestCase):
             assert model.batchnorm.running_mean.device == torch.device(device2)
 
             if torch.device(device2) == torch.device("meta"):
-                with self.assertRaises(ValueError):
+                with pytest.raises(ValueError):
                     # We need a `value` to set the weight back on CPU
                     set_module_tensor_to_device(model, "batchnorm.running_mean", device1)
 
@@ -169,12 +170,11 @@ class ModelingUtilsTester(unittest.TestCase):
     def test_set_module_tensor_checks_shape(self):
         model = ModelForTest()
         tensor = torch.zeros((2, 2))
-        with self.assertRaises(ValueError) as cm:
+        with pytest.raises(
+            ValueError,
+            match='Trying to set a tensor of shape torch.Size([2, 2]) in "weight" (which has shape torch.Size([4, 3])), this look incorrect.',
+        ):
             set_module_tensor_to_device(model, "linear1.weight", "cpu", value=tensor)
-        assert (
-            str(cm.exception)
-            == 'Trying to set a tensor of shape torch.Size([2, 2]) in "weight" (which has shape torch.Size([4, 3])), this look incorrect.'
-        )
 
     def test_named_tensors(self):
         model = nn.BatchNorm1d(4)
@@ -300,7 +300,7 @@ class ModelingUtilsTester(unittest.TestCase):
     def test_check_device_map(self):
         model = ModelForTest()
         check_device_map(model, {"": 0})
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             check_device_map(model, {"linear1": 0, "linear2": 1})
 
         check_device_map(model, {"linear1": 0, "linear2": 1, "batchnorm": 1})
@@ -669,11 +669,11 @@ class ModelingUtilsTester(unittest.TestCase):
         result = convert_file_size_to_int(500)
         assert result == 500
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             convert_file_size_to_int("5MBB")
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             convert_file_size_to_int("5k0MB")
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             convert_file_size_to_int("-1GB")

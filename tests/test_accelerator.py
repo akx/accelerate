@@ -4,6 +4,7 @@ import pickle
 import tempfile
 from unittest.mock import patch
 
+import pytest
 import torch
 from parameterized import parameterized
 from torch.utils.data import DataLoader, TensorDataset
@@ -60,7 +61,7 @@ class AcceleratorTester(AccelerateTestCase):
         _ = Accelerator()
         assert PartialState._shared_state["_cpu"] is False
         assert PartialState._shared_state["device"].type in ["cuda", "mps", "npu", "xpu"]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             _ = Accelerator(cpu=True)
 
     def test_mutable_states(self):
@@ -309,7 +310,7 @@ class AcceleratorTester(AccelerateTestCase):
         )
 
         # This should not work and get value error
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             model = accelerator.prepare(model)
 
     @slow
@@ -342,7 +343,7 @@ class AcceleratorTester(AccelerateTestCase):
         accelerator = Accelerator()
 
         # This should not work and get value error
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             _ = accelerator.prepare(model)
 
         PartialState._reset_state()

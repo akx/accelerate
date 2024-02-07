@@ -26,6 +26,7 @@ from typing import Optional
 from unittest import mock
 
 import numpy as np
+import pytest
 import torch
 
 # We use TF to parse the logs
@@ -122,7 +123,7 @@ class TensorBoardTrackingTest(unittest.TestCase):
             assert found_tensor, "Converted tensor was not found in the log file!"
 
     def test_project_dir(self):
-        with self.assertRaisesRegex(ValueError, "Logging with `tensorboard` requires a `logging_dir`"):
+        with pytest.raises(ValueError, match="Logging with `tensorboard` requires a `logging_dir`"):
             _ = Accelerator(log_with="tensorboard")
         with tempfile.TemporaryDirectory() as dirpath:
             _ = Accelerator(log_with="tensorboard", project_dir=dirpath)

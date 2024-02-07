@@ -18,6 +18,7 @@ import unittest
 from collections import OrderedDict
 from tempfile import TemporaryDirectory
 
+import pytest
 import torch
 import torch.nn as nn
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -628,7 +629,7 @@ class BigModelingTester(unittest.TestCase):
         device_map = {"linear1": "disk", "batchnorm": "cpu", "linear2": 0}
         with TemporaryDirectory() as tmp_dir:
             dispatch_model(model, device_map, offload_dir=tmp_dir)
-            with self.assertRaises(RuntimeError):
+            with pytest.raises(RuntimeError):
                 model.to(0)
 
     @require_multi_gpu
@@ -641,7 +642,7 @@ class BigModelingTester(unittest.TestCase):
                 model.to("cpu")
             with self.assertLogs("accelerate.big_modeling", level="WARNING"):
                 model.cuda(0)
-            with self.assertRaises(RuntimeError):
+            with pytest.raises(RuntimeError):
                 x = torch.randn(2, 3)
                 model(x)
 

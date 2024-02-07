@@ -19,6 +19,7 @@ import warnings
 from collections import UserDict, namedtuple
 from unittest.mock import Mock, patch
 
+import pytest
 import torch
 from torch import nn
 
@@ -89,12 +90,11 @@ class UtilsTester(unittest.TestCase):
         assert result4["c"] == 1
 
     def test_honor_type(self):
-        with self.assertRaises(TypeError) as cm:
+        with pytest.raises(
+            TypeError,
+            match=r"Unsupported types \(<class 'int'>\) passed to `tensor`. Only nested list/tuple/dicts of objects that are valid for `is_torch_tensor` should be passed.",
+        ):
             _ = recursively_apply(torch.tensor, (torch.tensor(1), 1), error_on_other_type=True)
-        assert (
-            str(cm.exception)
-            == "Unsupported types (<class 'int'>) passed to `tensor`. Only nested list/tuple/dicts of objects that are valid for `is_torch_tensor` should be passed."
-        )
 
     def test_listify(self):
         tensor = torch.tensor([1, 2, 3, 4, 5])

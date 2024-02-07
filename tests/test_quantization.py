@@ -16,6 +16,7 @@ import gc
 import tempfile
 import unittest
 
+import pytest
 import torch
 import torch.nn as nn
 
@@ -27,7 +28,7 @@ from accelerate.utils.dataclasses import BnbQuantizationConfig
 
 class BitsAndBytesConfigIntegration(unittest.TestCase):
     def test_BnbQuantizationConfig(self):
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             BnbQuantizationConfig(load_in_8bit=True, load_in_4bit=True)
 
 
