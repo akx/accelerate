@@ -35,10 +35,10 @@ class MockClass(KwargsHandler):
 class KwargsHandlerTester(unittest.TestCase):
     def test_kwargs_handler(self):
         # If no defaults are changed, `to_kwargs` returns an empty dict.
-        self.assertDictEqual(MockClass().to_kwargs(), {})
-        self.assertDictEqual(MockClass(a=2).to_kwargs(), {"a": 2})
-        self.assertDictEqual(MockClass(a=2, b=True).to_kwargs(), {"a": 2, "b": True})
-        self.assertDictEqual(MockClass(a=2, c=2.25).to_kwargs(), {"a": 2, "c": 2.25})
+        assert MockClass().to_kwargs() == {}
+        assert MockClass(a=2).to_kwargs() == {"a": 2}
+        assert MockClass(a=2, b=True).to_kwargs() == {"a": 2, "b": True}
+        assert MockClass(a=2, c=2.25).to_kwargs() == {"a": 2, "c": 2.25}
 
     @require_non_cpu
     def test_grad_scaler_kwargs(self):
