@@ -21,9 +21,6 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = [
-    "F401", # Ignore seemingly unused imports (they're meant for re-export)
-]
 "manim_animations/*" = ["ALL"]
 
 [tool.ruff.lint.isort]
